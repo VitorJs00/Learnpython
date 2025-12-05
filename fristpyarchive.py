@@ -1,1 +1,3 @@
-print('hello world')
+text = input('insira algob').lower()
+print(text + "text adicionado")
+
