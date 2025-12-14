@@ -22,20 +22,21 @@ for num in range(tamanho):
 for linhas in range(tamanho):
     for colunas in range(tamanho):
         #tab_2[linhas].append(str(contador).zfill(2))
-        tab_2[linhas].append(0)
+        tab_2[linhas].append('!')
         contador+=1
 # linha e coluna       
 
 
 #PINTANDO DIAGONAIS
 for index_linha in range(tamanho):
-    tab_2[index_linha][index_linha] = '.'
-    tab_2[index_linha][-index_linha-1]='.'
+    tab_2[index_linha][index_linha] = '?'
+    tab_2[index_linha][-index_linha-1]='?'
 
 
 
-#need [(0,-1),(1,-2)]
+
 #exibir tabela
 for indice in range(tamanho):
     print(tab_2[indice])
 
+ 
