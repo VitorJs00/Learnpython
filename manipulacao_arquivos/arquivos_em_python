@@ -1,0 +1,17 @@
+Arquivos em python:
+    TEXTO: json,txt,xml,html
+    binario: imgs,videos,pdf,xlsz,docx,pptx
+
+Funcao:open(arquivo:'caminho',modo:'modo de abertura') lê arquivos de todos tipos
+
+         |    TEXTO        |      BINARIO
+  L,L/E  |  'r','r+'       |       'rb','rb+'
+  -------------------------|-------------------
+  E,E/L  |  'w','w+'       |       'wb','wb+'
+    -----------------------|---------------------
+  A,A/L  |  'a' 'a+'       |       'ab','ab+' 
+
+L=LEITURA, E=ESCRITA, A=ANEXAR(append)
+
+ex: open('local/do/arquivo.txt','r') = arq
+    open('local/do/arquivo.txt','r+') = arq_2
