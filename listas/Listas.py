@@ -13,30 +13,57 @@ for i in range(9):
 
 
 tab_2 = []
-tamanho = 10
+tamanho = 3
 contador=1
 for num in range(tamanho):
     tab_2.append([])
 
-
 for linhas in range(tamanho):
     for colunas in range(tamanho):
         #tab_2[linhas].append(str(contador).zfill(2))
-        tab_2[linhas].append('!')
+        tab_2[linhas].append(0)
         contador+=1
-# linha e coluna       
+#exibir tabela
 
+rodando = True
+ganhou = False
+while rodando:
+    try:
+        cord = input('informe x,y: ')
+        print(int(cord[0]))
+        x=int(cord[0])
+        y=int(cord[2])
+        tab_2[x][y] = 'X'
+        for indice in range(tamanho):
+            print(tab_2[indice])
 
+        #verificações
+        #1 diagonal 
+        for index_linha in range(tamanho):
+            if tab_2[index_linha][index_linha] == 'X':
+                ganhou = True
+        #2 diagonal 
+        for index_linha in range(tamanho):
+            if tab_2[index_linha][-index_linha-1] == 'X':
+                ganhou=True
+        # Linhas
+        for index_linha in range(tamanho):
+            linha_atual = tab_2[index_linha]
+            if linha_atual.count('X') == len(linha_atual):
+                ganhou=True
+        
+        if ganhou:
+            print('VELHA')
+
+    except:
+        ...
+        print('invalido')
+        rodando=False
+ 
+
+"""
 #PINTANDO DIAGONAIS
 for index_linha in range(tamanho):
     tab_2[index_linha][index_linha] = '?'
     tab_2[index_linha][-index_linha-1]='?'
-
-
-
-
-#exibir tabela
-for indice in range(tamanho):
-    print(tab_2[indice])
-
- 
+"""

@@ -12,3 +12,4 @@ print(tupla_2[tupla_2.index('txt')])
 print(tupla_1[1:3])
 print(tupla_1.count(True))
 
+
