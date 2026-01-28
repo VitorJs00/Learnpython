@@ -16,8 +16,8 @@ class exibir_dados(tk.Tk):
             self.data = json.load(file)
 
     def build_container(self,):
-        self.container_dados = Frame(self.window,bg="#2902B6",height=200)
-        self.container_dados.pack(fill=tk.BOTH, expand=True)
+        self.container_dados = Frame(self.window,bg="#2902B6",height=200,)
+        self.container_dados.pack(fill=tk.BOTH, expand=True,side='bottom')
         
         Colunas = tk.Frame(self.container_dados,bg="#C91AC0")
         Colunas.pack(fill="x")
@@ -91,5 +91,5 @@ class exibir_dados(tk.Tk):
                 width=15
             ).pack(side="left", fill="x", expand=True)
 
-    def atualizar(self,):
-        self.build_container()
+    
+    
