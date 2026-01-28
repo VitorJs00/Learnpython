@@ -72,12 +72,27 @@ class index:
 
 
 
-    def edit_get_sub_categorias(self,categoria,use_edit=False):
-        self.edit_sub_categorias.clear()
-        for item,i in zip(self.categoria_data[str(categoria)],range(len(self.categoria_data[str(categoria)]))):
-            self.edit_sub_categorias.append(item)
-        self.edit_Sub_Categoria_bbx.config(values=self.edit_sub_categorias)
+    def edit_get_sub_categorias(self, categoria, use_edit=False):
+        """Atualiza subcategorias para edição"""
+        if not categoria:
+            return
         
+        self.edit_sub_categorias.clear()
+        
+        # Verificar se a categoria existe nos dados
+        if categoria in self.categoria_data:
+            for item in self.categoria_data[str(categoria)]:
+                self.edit_sub_categorias.append(item)
+        
+        # Atualizar combobox
+        if use_edit:
+            self.edit_Sub_Categoria_bbx.config(values=self.edit_sub_categorias)
+            # Manter a seleção atual se existir
+            current_value = self.edit_Sub_Categoria_bbx.get()
+            if current_value and current_value in self.edit_sub_categorias:
+                self.edit_Sub_Categoria_bbx.set(current_value)
+            else:
+                self.edit_Sub_Categoria_bbx.set('')
 
     def build_container(self,):
         self.container_pai = tk.Frame(master=self.window, bg="yellow",height=200)
@@ -239,58 +254,109 @@ class index:
             popup.geometry(f"{largura}x{altura}+{x}+{y}")
 
 
-    def edit_product(self,Id):
-        print(self.Nome_edit.get())
-        print(self.edit_marca.get())
+    def edit_product(self, Id):
+        print(f"Editando ID: {Id}")
+        print(f"Nome edit: {self.Nome_edit.get()}")
+        print(f"Marca edit: {self.edit_marca.get()}")
+        
+        # Verificar se há um ID válido selecionado
+        if not Id or Id == "" or Id is None:
+            self.mostrar_popup("Selecione um produto para editar!")
+            return
+        
+        # Ler dados atuais
+        with open(JSON_PATH, 'r', encoding='utf-8') as file:
+            data = json.load(file)
+        
+        # Encontrar e atualizar o produto
+        produto_encontrado = False
+        for i, element in enumerate(data):
+            if element.get("Id") == Id:
+                #print(f"Encontrado produto: {element}")
+                
+                # Atualizar apenas campos que foram modificados
+                novo_nome = self.Nome_edit.get()
+                if novo_nome and novo_nome != element["Nome"]:
+                    data[i]["Nome"] = novo_nome
+                
+                nova_marca = self.edit_marca.get()
+                if nova_marca and nova_marca != element["Marca"]:
+                    data[i]["Marca"] = nova_marca
+                
+                nova_categoria = [self.edit_Categoria.get(), self.edit_Sub_Categoria_bbx.get()]
+                if any(nova_categoria) and nova_categoria != element["Categoria"]:
+                    data[i]["Categoria"] = nova_categoria
+                
+                nova_validade = self.Validade_edit.get()
+                if nova_validade and nova_validade != element["Validade"]:
+                    data[i]["Validade"] = nova_validade
+                
+                produto_encontrado = True
+                break
+        
+        if not produto_encontrado:
+            self.mostrar_popup("Produto não encontrado!")
+            return
+        
+        # Salvar no arquivo
+        with open(JSON_PATH, 'w', encoding='utf-8') as file:
+            json.dump(data, file, ensure_ascii=False, indent=2)
+        
+        #print("Dados salvos no JSON")
+        
+        # Atualizar dados na memória
+        with open(JSON_PATH, 'r', encoding='utf-8') as file:
+            self.data = json.load(file)
+        
+        # Atualizar visualização SEM destruir tudo
+        self.atualizar_visualizacao()
+        
+        # Limpar campos de edição
+        self.limpar_campos_edicao()
 
-        with open(JSON_PATH, 'r',encoding='utf-8') as file:
-            data = list(json.load(file))
-        for element,i in zip(data,range(len(data))):
-            if element["Id"] == Id:
-                data[i]["Nome"] = self.Nome_edit.get()
-                data[i]["Marca"] = self.edit_marca.get()
-                data[i]["Categoria"] = [self.edit_Categoria.get(),self.edit_Sub_Categoria_bbx.get() ]
-                data[i]["Validade"] = self.Validade_edit.get()
-        
-        
-        
-        
-
-        if (
-            data[i]["Nome"] or data[i]["Marca"] or data[i]["Categoria"]  or data[i]["Validade"] 
-            
-        ):
-            with open(JSON_PATH, 'w',encoding='utf-8') as file:
-                json.dump(data,file,ensure_ascii=False)
-            
-            with open(JSON_PATH, 'r',encoding='utf-8') as file:
-                self.data = list(json.load(file))
-
-            self.container_pai.destroy()
+    def atualizar_visualizacao(self):
+        """Atualiza apenas a visualização dos dados"""
+        # Destruir apenas o container de dados
+        if hasattr(self, 'container_dados'):
             self.container_dados.destroy()
-            self.build_container()
-            self.build_container_dados()
-            
-            
-
-
-        else:
-            popup = tk.Tk()
-            popup.title("ALERTA")
-
-            largura = 300
-            altura = 150
-
-            popup.update_idletasks()
-
-            x = (popup.winfo_screenwidth() // 2) - (largura // 2)
-            y = (popup.winfo_screenheight() // 2) - (altura // 2)
-
-            Label(popup,text="FACA AS  MODIFICACOES DO PRODUTO\n OU SELECIONE UMA LINHA",bg="#FF5E00",height=30).pack(anchor="center",fill=tk.BOTH)
-            popup.geometry(f"{largura}x{altura}+{x}+{y}")
-
         
+        # Reconstruir apenas os dados
+        self.build_container_dados()
         
+        # Não destruir o container pai (com botões de edição)
+        # para manter os valores nos campos
+
+    def limpar_campos_edicao(self):
+        """Limpa os campos de edição após salvar"""
+        self.Nome_edit.delete(0, END)
+        self.edit_marca.delete(0, END)
+        self.edit_Categoria.set('')
+        self.edit_Sub_Categoria_bbx.set('')
+        self.Validade_edit.delete(0, END)
+        self.Validade_edit.set_date(None)
+        self.id_text = None
+
+    def mostrar_popup(self, mensagem):
+        """Mostra um popup com mensagem"""
+        popup = tk.Toplevel(self.window)
+        popup.title("ALERTA")
+        
+        largura = 400
+        altura = 120
+        
+        popup.update_idletasks()
+        
+        x = (popup.winfo_screenwidth() // 2) - (largura // 2)
+        y = (popup.winfo_screenheight() // 2) - (altura // 2)
+        
+        tk.Label(popup, text=mensagem, bg="#FF5E00", 
+                font=("Arial", 10), wraplength=350).pack(pady=20, padx=10)
+        
+        tk.Button(popup, text="OK", command=popup.destroy).pack(pady=10)
+        
+        popup.geometry(f"{largura}x{altura}+{x}+{y}")
+        popup.transient(self.window)  # Torna a janela modal
+        popup.grab_set()
 
     def build_container_dados(self,):
         with open(JSON_PATH,'r',encoding='utf-8') as file:
@@ -347,7 +413,6 @@ class index:
             ).pack(side="left", fill="x", expand=True)
 
         for element,i in zip(self.data,range(len(self.data))):
-            
             self.criar_linha(self.container_dados,element,i)
             
     def criar_linha(self,parent, valores,i):
@@ -385,28 +450,53 @@ class index:
         
 
 
-    def linha_select(self,valores,linha):
-        
+    def linha_select(self, valores, linha):
+        # Salvar a linha anterior
         if hasattr(self, 'linha_anterior') and self.linha_anterior:
-            print('select',self.id_text)
-
-            self.linha_anterior.config(borderwidth=0, relief="flat")
-
+            try:
+                self.linha_anterior.config(borderwidth=0, relief="flat", bg='SystemButtonFace')
+            except:
+                pass
         
-
-        self.Nome_edit.delete(0,END)
-        self.edit_marca.delete(0,END)
+        # Aplicar borda na nova linha
+        try:
+            linha.config(borderwidth=2, relief='solid', bg='lightblue')
+        except:
+            pass
         
-        self.Nome_edit.insert(0,string=valores['Nome'])
-        self.edit_marca.insert(0,string=valores["Marca"])
-        linha.config( borderwidth=2,relief='solid')
-        #CORRCAO ERRO SELF.MARCA TAMBEM EXIBINDO TEXTO
-        self.Marca.delete(0,END)
-
-        #BORDER NA LINHA
+        # Atualizar campos de edição
+        self.Nome_edit.delete(0, END)
+        self.edit_marca.delete(0, END)
         
+        # Preencher com valores da linha selecionada
+        self.Nome_edit.insert(0, string=valores.get('Nome', ''))
+        self.edit_marca.insert(0, string=valores.get("Marca", ""))
+        
+        # Preencher categoria se existir
+        categorias = valores.get("Categoria", [])
+        if categorias and len(categorias) >= 2:
+            self.edit_Categoria.set(categorias[0])
+            self.edit_Sub_Categoria_bbx.set(categorias[1])
+            # Atualizar subcategorias
+            self.edit_get_sub_categorias(categorias[0], use_edit=True)
+        
+        # Preencher validade se existir
+        validade = valores.get("Validade", "")
+        if validade:
+            try:
+                # Converter string de data para o formato do DateEntry
+                if '/' in validade:
+                    dia, mes, ano = validade.split('/')
+                    data_formatada = f"{ano}-{mes}-{dia}"
+                    self.Validade_edit.set_date(data_formatada)
+            except:
+                pass
+        
+        # Salvar referências
         self.linha_anterior = linha
-        self.id_text = valores["Id"]
+        self.id_text = valores.get("Id", "")
+        
+        #print(f"Linha selecionada - ID: {self.id_text}")
 
         
 
@@ -501,7 +591,22 @@ class index:
         
         
         tk.Button(
-            self.frame_button_edit,text="EDITAR\nPRODUTO",
-            command=lambda:self.edit_product(self.id_text)
+            self.frame_button_edit,text="   EDITAR\nPRODUTO   ",
+            command=self.editar_produto_selecionado
 
         ).pack(expand=True,anchor='center')
+
+    def editar_produto_selecionado(self):
+        """Wrapper para editar produto com validação"""
+        if not self.id_text or self.id_text == "":
+            self.mostrar_popup("Selecione um produto para editar!")
+            return
+        
+        # Verificar se há alterações
+        if (not self.Nome_edit.get() and 
+            not self.edit_marca.get() and 
+            not self.edit_Categoria.get()):
+            self.mostrar_popup("Faça modificações antes de salvar!")
+            return
+        
+        self.edit_product(self.id_text)
