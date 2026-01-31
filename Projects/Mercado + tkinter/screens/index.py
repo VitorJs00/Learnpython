@@ -69,9 +69,6 @@ class index:
         if use_edit == True:
             self.edit_Sub_Categoria_bbx.config(values=self.sub_categorias)
             
-
-
-
     def edit_get_sub_categorias(self, categoria, use_edit=False):
         """Atualiza subcategorias para edição"""
         if not categoria:
@@ -101,7 +98,98 @@ class index:
         self.add_produto(self.container_pai)
         self.editar_produto(self.container_pai)
         self.excluir_produto(self.container_pai)
+        self.pesquisar_produto(self.container_pai)
+
+
+    def pesquisar_produto(self,parent):
         
+        self.pesquisa_frame = Frame(parent,height=40,background='yellow')
+        self.pesquisa_frame.pack(fill='x')
+
+
+        self.botao_pesquisar = Button(self.pesquisa_frame,anchor=CENTER,text='PESQUISAR',command=self.build_pesquisa_result)
+        self.botao_pesquisar.pack(side=RIGHT)
+
+
+        self.value_pesquisa = Entry(self.pesquisa_frame,background='white',width=90)
+        self.value_pesquisa.pack(side=LEFT,fill='x')
+
+        self.entrada = self.value_pesquisa.get()
+        
+        
+
+    def build_pesquisa_result(self,):
+        self.entrada = self.value_pesquisa.get()
+        if hasattr(self, 'container_dados'):
+            print('destruido')
+            self.container_dados.destroy()
+        
+        
+        if self.entrada =='':
+            print('construido')
+        # Reconstruir apenas os dados
+            self.build_container_dados()
+        
+        else:
+            
+            with open(JSON_PATH,'r',encoding='utf-8') as file:
+                self.data = json.load(file)
+
+            self.container_dados = Frame(self.window,bg="#2902B6",height=200,)
+            self.container_dados.pack(fill=tk.BOTH, expand=True,side='bottom')
+            
+            Colunas = tk.Frame(self.container_dados,bg="#C91AC0")
+            Colunas.pack(fill="x")
+
+            tk.Label(
+                    Colunas,
+                    text="N",
+                    borderwidth=1,
+                    relief="solid",
+                    width=1
+                ).pack(side="left", fill="x", expand=True)
+            
+            tk.Label(
+                    Colunas,
+                    text="ID",
+                    borderwidth=1,
+                    relief="solid",
+                    width=15
+                ).pack(side="left", fill="x", expand=True)
+            tk.Label(
+                    Colunas,
+                    text="Nome",
+                    borderwidth=1,
+                    relief="solid",
+                    width=15
+                ).pack(side="left", fill="x", expand=True)
+            tk.Label(
+                    Colunas,
+                    text="Marca",
+                    borderwidth=1,
+                    relief="solid",
+                    width=15
+                ).pack(side="left", fill="x", expand=True)
+            tk.Label(
+                    Colunas,
+                    text="Categorias",
+                    borderwidth=1,
+                    relief="solid",
+                    width=15
+                ).pack(side="left", fill="x", expand=True)      
+            tk.Label(
+                    Colunas,
+                    text="Validade",
+                    borderwidth=1,
+                    relief="solid",
+                    width=15
+                ).pack(side="left", fill="x", expand=True)
+            
+            for element,i in zip(self.data,range(len(self.data))):
+                if self.value_pesquisa.get().lower() in element["Nome"].lower():
+                    self.criar_linha(self.container_dados,element,i)
+
+
     def add_produto(self,parent):
         self.frame_button =  tk.Frame(parent,height=80)
         self.frame_button.pack(fill="x")
@@ -181,7 +269,6 @@ class index:
 
         ).pack(expand=True,anchor='center')
 
-
     def selecionar_opcao(self,event,use_edit=False):
         # Obtém a opção selecionada na Combobox
         if use_edit:
@@ -252,7 +339,6 @@ class index:
 
             Label(popup,text="INSIRA TODOS DADOS DO PRODUTO",bg="#FF5E00",height=30).pack(anchor="center",fill=tk.BOTH)
             popup.geometry(f"{largura}x{altura}+{x}+{y}")
-
 
     def edit_product(self, Id):
         #print(f"Editando ID: {Id}")
@@ -349,7 +435,6 @@ class index:
         # Limpar campos de edição
         self.limpar_campos_edicao()
 
-
     def atualizar_visualizacao(self):
         """Atualiza apenas a visualização dos dados"""
         # Destruir apenas o container de dados
@@ -394,7 +479,7 @@ class index:
         popup.transient(self.window)  # Torna a janela modal
         popup.grab_set()
 
-    def build_container_dados(self,):
+    def build_container_dados(self,pesquisa=False):
         with open(JSON_PATH,'r',encoding='utf-8') as file:
             self.data = json.load(file)
 
@@ -447,7 +532,7 @@ class index:
                 relief="solid",
                 width=15
             ).pack(side="left", fill="x", expand=True)
-
+        
         for element,i in zip(self.data,range(len(self.data))):
             self.criar_linha(self.container_dados,element,i)
             
@@ -455,8 +540,7 @@ class index:
         
         frame_linha = tk.Frame(parent)
         frame_linha.pack(fill="x")
-        
-    
+           
         coluna_num = tk.Label(
            frame_linha,
                 text=i,
@@ -482,9 +566,6 @@ class index:
             linha_dado.config( borderwidth=0,relief=None)
 
             linha_dado.bind("<Button-1>", lambda e: self.linha_select(valores,linha=frame_linha))
-
-        
-
 
     def linha_select(self, valores, linha):
         # Salvar a linha anterior
@@ -548,8 +629,6 @@ class index:
         
         #print(f"Linha selecionada - ID: {self.id_text}")
 
-        
-
     def excluir_produto(self,parent):
         self.frame_button_del =  tk.Frame(parent,height=80)
         self.frame_button_del.pack(fill="x")
@@ -610,8 +689,7 @@ class index:
                 relief="solid",
                 width=23
             )
-        self.validade_del.pack( fill="x", expand=True,side=LEFT)
-        
+        self.validade_del.pack( fill="x", expand=True,side=LEFT)      
     
     def editar_produto(self,parent):
         self.frame_button_edit =  tk.Frame(parent,height=80)
@@ -715,8 +793,5 @@ class index:
     def excluir_produto_selecionado(self):
         if not self.id_text or self.id_text == "":
             self.mostrar_popup("Selecione um produto para editar!")
-            return
-        
-        
-        
+            return     
         self.delete_product(self.id_text)
