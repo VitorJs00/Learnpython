@@ -255,9 +255,9 @@ class index:
 
 
     def edit_product(self, Id):
-        print(f"Editando ID: {Id}")
-        print(f"Nome edit: {self.Nome_edit.get()}")
-        print(f"Marca edit: {self.edit_marca.get()}")
+        #print(f"Editando ID: {Id}")
+        #print(f"Nome edit: {self.Nome_edit.get()}")
+        #print(f"Marca edit: {self.edit_marca.get()}")
         
         # Verificar se há um ID válido selecionado
         if not Id or Id == "" or Id is None:
@@ -313,6 +313,42 @@ class index:
         
         # Limpar campos de edição
         self.limpar_campos_edicao()
+
+    def delete_product(self,Id):
+        # Ler dados atuais
+        with open(JSON_PATH, 'r', encoding='utf-8') as file:
+            data = json.load(file)
+        
+        # Encontrar e atualizar o produto
+        produto_encontrado = False
+        for i, element in enumerate(data):
+            if element.get("Id") == Id:
+                #print(f"Encontrado produto: {element}")
+                
+                del data[i]
+                produto_encontrado = True
+                break
+        
+        if not produto_encontrado:
+            self.mostrar_popup("Produto não encontrado!")
+            return
+        
+        # Salvar no arquivo
+        with open(JSON_PATH, 'w', encoding='utf-8') as file:
+            json.dump(data, file, ensure_ascii=False, indent=2)
+        
+        #print("Dados salvos no JSON")
+        
+        # Atualizar dados na memória
+        with open(JSON_PATH, 'r', encoding='utf-8') as file:
+            self.data = json.load(file)
+        
+        # Atualizar visualização SEM destruir tudo
+        self.atualizar_visualizacao()
+        
+        # Limpar campos de edição
+        self.limpar_campos_edicao()
+
 
     def atualizar_visualizacao(self):
         """Atualiza apenas a visualização dos dados"""
@@ -467,11 +503,25 @@ class index:
         # Atualizar campos de edição
         self.Nome_edit.delete(0, END)
         self.edit_marca.delete(0, END)
-        
+        self.nome_del.config(text='')
+        self.Id_del.config(text='')
+        self.Marca_del.config(text='')
+        self.Categorias_del.config(text='')
+        self.validade_del.config(text='')
+
         # Preencher com valores da linha selecionada
         self.Nome_edit.insert(0, string=valores.get('Nome', ''))
         self.edit_marca.insert(0, string=valores.get("Marca", ""))
-        
+
+        self.nome_del.config(text=valores.get("Nome", ""))
+        self.Id_del.config(text=valores.get("Id", ""))
+        self.Marca_del.config(text=valores.get("Marca", ""))
+        self.Categorias_del.config(text=valores.get("Categoria", ""))
+        self.validade_del.config(text=valores.get("Validade", ""))
+
+
+
+
         # Preencher categoria se existir
         categorias = valores.get("Categoria", [])
         if categorias and len(categorias) >= 2:
@@ -501,16 +551,67 @@ class index:
         
 
     def excluir_produto(self,parent):
-        self.frame_button =  tk.Frame(parent,height=80)
-        self.frame_button.pack(fill="x")
+        self.frame_button_del =  tk.Frame(parent,height=80)
+        self.frame_button_del.pack(fill="x")
+       
+        tk.Button(
+            self.frame_button_del,text="   EXCLUIR\nPRODUTO   ",
+            command=self.excluir_produto_selecionado,anchor='center'
+
+        ).pack(expand=True,side=RIGHT,anchor='s')
 
         tk.Label(
-                self.frame_button,
-                text="VALOR EXCLUIR",
+                self.frame_button_del,
+                
                 borderwidth=1,
                 relief="solid",
-                width=15
-            ).pack(side="left", fill="x", expand=True)
+                width=1,
+                padx=30
+            ).pack( fill="x", expand=True,side=LEFT)
+        
+        self.Id_del = tk.Label(
+                self.frame_button_del,
+                text="ID:",
+                borderwidth=1,
+                relief="solid",
+                width=23
+            )
+        self.Id_del.pack( fill="x", expand=True,side=LEFT)
+        self.nome_del = tk.Label(
+                self.frame_button_del,
+                text="Nome",
+                borderwidth=1,
+                relief="solid",
+                width=23
+            )
+        self.nome_del.pack( fill="x", expand=True,side=LEFT)
+        self.Marca_del = tk.Label(
+                self.frame_button_del,
+                text="Marca",
+                borderwidth=1,
+                relief="solid",
+                width=23
+            )
+        self.Marca_del.pack( fill="x", expand=True,side=LEFT)
+
+        self.Categorias_del = tk.Label(
+                self.frame_button_del,
+                text="Categoria",
+                borderwidth=1,
+                relief="solid",
+                width=23
+            )
+        self.Categorias_del.pack( fill="x", expand=True,side=LEFT)
+        
+        self.validade_del = tk.Label(
+                self.frame_button_del,
+                text="Validade",
+                borderwidth=1,
+                relief="solid",
+                width=23
+            )
+        self.validade_del.pack( fill="x", expand=True,side=LEFT)
+        
     
     def editar_produto(self,parent):
         self.frame_button_edit =  tk.Frame(parent,height=80)
@@ -610,3 +711,12 @@ class index:
             return
         
         self.edit_product(self.id_text)
+
+    def excluir_produto_selecionado(self):
+        if not self.id_text or self.id_text == "":
+            self.mostrar_popup("Selecione um produto para editar!")
+            return
+        
+        
+        
+        self.delete_product(self.id_text)
