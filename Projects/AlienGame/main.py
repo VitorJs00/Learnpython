@@ -15,10 +15,29 @@ class Game:
         self.move = False
         self.y_alien = 0
         self.vel_alien = 0.09
-        self.lifes = 3
+        self.lifes = 0
         self.kills=0
         self.font = pygame.font.SysFont(None, 36)
+        objects = []
+        
+        self.button = Button(
+            self.screen.get_height()//2+100,
+            self.screen.get_width()//2 - 250,
+            200,
+            90,
+            'JOGAR NOVAMENTE',
+            self.restart,
+            screen=self.screen
+            
 
+
+        )
+
+    def restart(self,):  
+        self.lifes = 3
+        self.kills=0
+        self.vel_alien = 0.09
+        self.x = self.screen.get_width()//2
 
     def run_game(self,):
         
@@ -50,11 +69,9 @@ class Game:
             self.lifes_count = self.font.render(f"LIFES:{self.lifes}", True, (255, 255, 255))
             self.screen.blit(self.lifes_count, (self.screen.get_width()-250, 0))
 
-            
             ####--------------- 
 
-
-            ###NIVES-----
+            ###NIVEIS-----
             if self.kills <=3:
                 self.Alien.numero_aliens = random.randint(0,3)
                 self.vel_alien = 0.09
@@ -65,10 +82,7 @@ class Game:
                 self.vel_alien = 0.09*1.5
                 self.Alien.numero_aliens =  random.randint(7,20)
 
-
             ###----------
-
-
 
             if self.move: 
                 self.projetil_rect = self.Nave.projeteis(y=self.y_proj) 
@@ -83,9 +97,6 @@ class Game:
                                 self.kills+=1
                                 if len(self.Alien.aliens) ==0:
                                     self.y_alien=0
-
-
-            
             
             if self.lifes>0:
                 
@@ -103,8 +114,17 @@ class Game:
                         del self.Alien.aliens[i]
                         self.y_alien=0
                         self.lifes-=1
-            
-            
+            else:
+                self.center_y = self.screen.get_height()//2-150
+                self.center_x = self.screen.get_width()//2 - 150
+                pygame.draw.rect(self.screen,'blue',(self.center_x,self.center_y,300,300))
+                self.screen.blit(self.Kills_count, (self.center_x, self.center_y))
+                self.button.render()
+                self.button.process()
+                
+
+
+
             pygame.display.flip()
 
 
@@ -192,6 +212,51 @@ class Alien:
         else:
             self.build_alien()
         
+class Button():
+    def __init__(self, x, y, width, height, buttonText='Button',onclickFunction=None, onePress=False,screen=''):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.onclickFunction = onclickFunction
+        self.onePress = onePress
+        self.alreadyPressed = False
+        self.buttonText = buttonText
+        self.screen = screen
+        
+        self.font = self.font = pygame.font.SysFont(None, 20)
 
+        self.fillColors = {
+            'normal': '#ffffff',
+            'hover': '#666666',
+            'pressed': '#333333',
+        }
+    def render(self,):
+            self.buttonSurface = pygame.Surface((self.width, self.height))
+            self.buttonRect = pygame.Rect(self.x, self.y, self.width, self.height)
+
+            self.buttonSurf = self.font.render(self.buttonText, True, (20, 20, 20))
+
+    def process(self):
+        mousePos = pygame.mouse.get_pos()
+        self.buttonSurface.fill(self.fillColors['normal'])
+        if self.buttonRect.collidepoint(mousePos):
+            self.buttonSurface.fill(self.fillColors['hover'])
+            if pygame.mouse.get_pressed(num_buttons=3)[0]:
+                self.buttonSurface.fill(self.fillColors['pressed'])
+                if self.onePress:
+                    self.onclickFunction()
+                elif not self.alreadyPressed:
+                    self.onclickFunction()
+                    self.alreadyPressed = True
+            else:
+                self.alreadyPressed = False
+
+        self.buttonSurface.blit(self.buttonSurf, [
+            self.buttonRect.width/2 - self.buttonSurf.get_rect().width/2,
+            self.buttonRect.height/2 - self.buttonSurf.get_rect().height/2
+        ])
+        self.screen.blit(self.buttonSurface, self.buttonRect)
+        
 game = Game()
 game.run_game()
